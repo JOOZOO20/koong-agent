@@ -17,7 +17,7 @@ koong is a *harness*: hooks physically block `git commit`, `git push`, and `gh p
 
 | | |
 |---|---|
-| 🔁 **Commit loop** | Before every commit: verifier + code-reviewer + scope-auditor + convention-auditor + security-auditor run **in parallel**, findings get fixed, loop repeats until `FINDINGS: 0` (max 3 iterations, then escalate — never silently ship). |
+| 🔁 **Commit loop** | Before every commit, `risk.sh` classifies the diff into a risk level (docs / small / normal / high-risk) with no LLM judgment, and only the reviewers that level requires run **in parallel** — verifier alone for docs, all 4 reviewers for auth, payments, migrations, test deletion, harness edits, or large diffs. Findings get fixed, loop repeats until `FINDINGS: 0` (max 3 iterations, then escalate — never silently ship). |
 | 🔀 **PR loop** | Before every push/PR: the same fan-out on the *cumulative branch diff*, plus scripted secret scan and dependency audit. |
 | 🔒 **Security doctrine** | Rule-ID system (SEC-*) covering IDOR, authz coverage, mass assignment, JWT pitfalls, payment integrity, SSRF, migrations. Security BLOCKER/MAJOR findings are **never** auto-relaxed — fix it or get an explicit human waiver. |
 | ✂️ **Scope discipline** | A dedicated auditor deletes what you didn't ask for. No speculative features, no premature abstractions, no drive-by refactors (the Karpathy rule, enforced). |
@@ -45,6 +45,10 @@ No Node? `curl -fsSL https://raw.githubusercontent.com/JOOZOO20/koong-agent/main
 Check your environment anytime: `npx koong-agent doctor` · Upgrade: `npx koong-agent update` (preserves your config, model settings, and hand-edited files).
 
 ## How the harness works
+
+![koong 커밋 게이트 구조도](docs/images/gate-flow.png)
+
+회색은 AI 판단(프롬프트, 스킬), 파랑은 스크립트와 훅으로 강제하는 부분, 초록은 측정 기록입니다. 위험도 단계는 게이트가 커밋 시점에 diff에서 다시 계산하므로 에이전트가 낮춰 신고할 수 없습니다.
 
 ```
  user: "/koong 지갑 기능 만들어줘"
@@ -90,7 +94,7 @@ docs/koong/
 
 1. **설치**: `npx koong-agent init` → Claude Code에서 `/koong-init` 한 번.
 2. **사용**: `/koong 만들고 싶은 것`을 한국어로. 백엔드를 몰라도 됩니다 — 전문용어 없는 질문 몇 개(추천값 제공)에 답하면 끝.
-3. **품질**: 모든 커밋 전에 검증 + 4종 리뷰(정확성·범위·컨벤션·보안)가 병렬로 돌고, 지적이 0이 될 때까지 수정 루프를 반복합니다. **이 루프는 훅이 물리적으로 강제**합니다 — 건너뛸 수 없습니다.
+3. **품질**: 모든 커밋 전에 스크립트가 변경 위험도를 문서, 소규모, 일반, 고위험의 4단계로 나누고, 단계에 필요한 검증과 리뷰(정확성, 보안, 범위, 규칙)만 병렬로 돌립니다. 지적이 0이 될 때까지 수정 루프를 반복하며, **이 루프는 훅이 물리적으로 강제**합니다 — 건너뛸 수 없습니다.
 4. **보안**: 소유권 검증, 결제 멱등성, JWT 함정, 시크릿 스캔, 의존성 감사까지. 보안 BLOCKER/MAJOR는 절대 완화되지 않습니다.
 5. **git**: 커밋·이슈·PR·푸시 모두 자동. 인증/결제/보안 같은 중요한 작업은 이슈부터 만들고 PR로 마무리합니다.
 
