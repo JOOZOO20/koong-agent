@@ -150,9 +150,12 @@ explain() { # explain <status-token>
 # ── git commit gate ──────────────────────────────────────────────────────────
 if printf '%s' "$CMD" | grep -qE '(^|[;&|[:space:]])git([[:space:]]+-C[[:space:]]+[^[:space:]]+)?[[:space:]]+commit\b'; then
 
+  # bootstrap pass is for the scaffold (first) commit only. Once HEAD exists a
+  # leftover token (e.g. its commit ran outside this hook) is stale: consume it
+  # and fall through to the full checks instead of bypassing them.
   if [ -f "$STATE/bootstrap.ok" ]; then
     rm -f "$STATE/bootstrap.ok"
-    exit 0
+    git -C "$DIR" rev-parse -q --verify HEAD >/dev/null 2>&1 || exit 0
   fi
 
   # deterministic secret scan on staged diff
