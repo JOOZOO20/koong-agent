@@ -50,6 +50,7 @@ fi
 # .gitignore
 touch "$DEST_DIR/.gitignore"
 grep -qxF '.claude/koong/state/' "$DEST_DIR/.gitignore" || printf '# koong\n.claude/koong/state/\n.env\n' >> "$DEST_DIR/.gitignore"
+grep -qxF '.koong/loop-log.jsonl' "$DEST_DIR/.gitignore" || printf '.koong/loop-log.jsonl\n' >> "$DEST_DIR/.gitignore"
 
 echo ""
 echo "✅ koong-agent 설치 완료!"

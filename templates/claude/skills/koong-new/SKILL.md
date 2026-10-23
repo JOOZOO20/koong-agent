@@ -55,7 +55,7 @@ If scaffolding lands in a subdirectory, move the koong payload (`CLAUDE.md`, `.c
 ## 3. Git bootstrap (fixed sequence)
 
 1. `git init -b main` (if not already a repo)
-2. Append the stack gitignore from `docs/koong/` install payload (`templates/gitignore/<stack>.txt` content was installed — if absent, write a standard one). Ensure `.env*` and `.claude/koong/state/` are covered.
+2. Append the stack gitignore from `docs/koong/` install payload (`templates/gitignore/<stack>.txt` content was installed — if absent, write a standard one). Ensure `.env*`, `.claude/koong/state/` and `.koong/loop-log.jsonl` are covered.
 3. `bash .claude/koong/scripts/mark.sh bootstrap` — one-time gate pass for the scaffold commit (marker-based, not message-based)
 4. `git add -A && git commit` with message `chore: 프로젝트 스캐폴딩 (<stack>)`
 5. GitHub (ask ONCE, plain Korean): "코드를 깃허브(온라인 코드 보관소)에도 올려둘까요? 무료이고, 비공개라 남들은 못 봐요. (추천: 네)" → yes: `gh repo create ${APP} --private --source=. --push`. Never `--public`.
