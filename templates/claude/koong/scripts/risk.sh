@@ -34,16 +34,18 @@ TIER=2
 REASONS=""
 add_reason() { REASONS="${REASONS:+$REASONS; }$1"; }
 
+# ── harness tampering = always max review ───────────────────────────────────
+# Checked BEFORE docs-only: CLAUDE.md and .claude/ agent/skill definitions are
+# .md files and must never fall through to T0.
+if printf '%s\n' "$PATHS" | grep -qE '^\.claude/|^CLAUDE\.md$|^\.koong/'; then
+  TIER=3; add_reason "harness-files-touched"
 # ── docs-only → T0 ───────────────────────────────────────────────────────────
-if [ "$N_FILES" -gt 0 ] && ! printf '%s\n' "$PATHS" | grep -qvE '\.(md|txt|rst|adoc)$|^LICENSE|^NOTICE|^\.gitignore$'; then
+elif [ "$N_FILES" -gt 0 ] && ! printf '%s\n' "$PATHS" | grep -qvE '\.(md|txt|rst|adoc)$|^LICENSE|^NOTICE|^\.gitignore$'; then
   TIER=0; add_reason "docs-only"
 else
   HIGH_RISK='auth|login|jwt|token|password|passwd|payment|billing|charge|refund|wallet|balance|migration|security|cors|crypto|secret|permission|role|admin'
 
-  # harness tampering = always max review
-  if printf '%s\n' "$PATHS" | grep -qE '^\.claude/|^CLAUDE\.md$|^\.koong/'; then
-    TIER=3; add_reason "harness-files-touched"
-  elif printf '%s\n' "$PATHS" | grep -qiE "$HIGH_RISK" || printf '%s' "$CONTENT" | grep -qiE "$HIGH_RISK"; then
+  if printf '%s\n' "$PATHS" | grep -qiE "$HIGH_RISK" || printf '%s' "$CONTENT" | grep -qiE "$HIGH_RISK"; then
     TIER=3; add_reason "high-risk-signal"
   elif printf '%s\n' "$FILES" | grep -E '^D' | awk '{print $2}' | grep -qiE '(test|spec)'; then
     TIER=3; add_reason "test-deletion"

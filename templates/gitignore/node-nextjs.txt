@@ -9,3 +9,4 @@ coverage/
 .env.*
 !.env.example
 .claude/koong/state/
+.koong/loop-log.jsonl
