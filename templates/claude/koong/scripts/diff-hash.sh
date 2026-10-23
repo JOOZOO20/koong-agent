@@ -18,6 +18,9 @@ command -v shasum >/dev/null 2>&1 || SHACMD="sha256sum"
     git ls-files --others --exclude-standard 2>/dev/null || true
   } | sort -u | while IFS= read -r f; do
     [ -n "$f" ] || continue
+    # waiver file = live gate input (read at commit time), not reviewed code:
+    # recording a user waiver must not invalidate the other agents' evidence
+    case "$f" in .koong/security-waivers.md) continue ;; esac
     printf 'FILE:%s\n' "$f"
     if [ -f "$f" ]; then
       $SHACMD "$f"
